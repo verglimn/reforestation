@@ -19,7 +19,6 @@ jobs:
         run: git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
           fetch-depth: 0
 
       - name: Consult the fortune teller
@@ -84,4 +83,8 @@ jobs:
 
       - name: Ascend back to the heavens
         if: steps.fortune.outputs.count != '0'
-        run: git push origin main
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          force: true
+          directory: "."
+          github_token: ${{ secrets.GITHUB_TOKEN }}

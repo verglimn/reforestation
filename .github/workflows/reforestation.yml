@@ -1,90 +1,71 @@
-name: Commit God
+name: Daily GitHub Reforestation
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: "17 1 * * *"  # 08:17 WIB
-    - cron: "43 4 * * *"  # 11:43 WIB
-    - cron: "7 8 * * *"   # 15:07 WIB
-    - cron: "31 11 * * *" # 18:31 WIB
-    - cron: "52 14 * * *" # 21:52 WIB
+    - cron: "15 0 * * *"
+    - cron: "42 3 * * *"
+    - cron: "07 6 * * *"
+    - cron: "33 9 * * *"
+    - cron: "51 12 * * *"
+    - cron: "24 14 * * *"
+    - cron: "10 16 * * *"
   workflow_dispatch:
 
 jobs:
-  commit_god_has_spoken:
+  auto_commit:
+    name: Pretending to be productive
     runs-on: ubuntu-latest
     steps:
-      - name: Set global directory
+      - name: Gaslighting Git into thinking this directory is safe
         run: git config --global --add safe.directory /github/workspace
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-
-      - name: Consult the fortune teller
-        id: fortune
+          persist-credentials: true
+          fetch-depth: 1
+          
+      - name: Randomized daily intensity logic
+        id: dice
         run: |
-          git fetch origin main
-          LAST_COMMIT_DATE=$(git log -1 --format="%ad" --date=format:'%Y-%m-%d' origin/main)
-          TODAY=$(date '+%Y-%m-%d')
-
-          if [ "$LAST_COMMIT_DATE" != "$TODAY" ]; then
-            COUNT=$((RANDOM % 3 + 1))  # 1-3 commit, dijamin jalan
-            echo "No commit today yet — MUST commit $COUNT time(s)"
-          else
-            ROLL=$((RANDOM % 100))
-            if [ $ROLL -lt 55 ]; then
-              COUNT=$((RANDOM % 2 + 1))  # 1-2 commit tambahan
-              echo "Already committed today, adding $COUNT more"
-            else
-              COUNT=0
-              echo "Already committed today, resting this round"
-            fi
+          ROLL=$(( $RANDOM % 100 + 1 ))
+          if [ $ROLL -le 30 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Coffee break mode: ON. Skipping this commit."
+            exit 0
           fi
-
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
-
-      - name: Perform the sacred ritual
-        if: steps.fortune.outputs.count != '0'
-        run: |
-          git config --local user.email "linstrahl@gmail.com"
-          git config --local user.name "linstrahl"
+          echo "Productivity mode: ON. Proceeding to plant a tree."
 
           MESSAGES=(
             "I have no idea why this works"
             "another commit, another regret"
             "it works… don't touch it!"
-            "pushing to look productive"
             "just one more fix bro I swear"
             "+1 bug, +1 feature, perfectly balanced"
-            "code was possessed, performed exorcism"
-            "this is fine 🔥"
             "added feature nobody asked for"
-            "why am I still doing this 💀"
-            "its 3am and im still coding send help!"
+            "why am I still doing this"
             "works on my machine ¯\_(ツ)_/¯"
             "I should've been a farmer"
           )
 
-          COUNT=${{ steps.fortune.outputs.count }}
+          RANDOM_MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+          echo "COMMIT_MSG=$RANDOM_MSG" >> $GITHUB_ENV
 
-          for i in $(seq 1 $COUNT); do
-            DELAY=$((RANDOM % 480 + 60))
-            echo "⏳ Waiting ${DELAY}s before commit $i/$COUNT..."
-            sleep $DELAY
-
-            echo "$(date '+%Y-%m-%d %H:%M:%S') — commit $i of $COUNT" >> LAST_UPDATED
-
-            git add -A
-            RANDOM_MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
-            git commit -m "$RANDOM_MSG"
-            echo "✅ Commit $i/$COUNT — $RANDOM_MSG"
-          done
-
-      - name: Ascend back to the heavens
-        if: steps.fortune.outputs.count != '0'
+      - name: Update activity timestamp
+        if: steps.dice.outputs.skip != 'true'
+        run: |
+          d=$(date -u '+%A, %d-%m-%Y | %H:%M:%S UTC')
+          echo "Sync: $d" > LAST_UPDATED
+          
+      - name: Generate randomized git contribution
+        if: steps.dice.outputs.skip != 'true'
+        run: |
+          git config --local user.email "verglimn@gmail.com"
+          git config --local user.name "verglimn"
+          git add -A
+          git commit -m "$COMMIT_MSG"
+          
+      - name: Synchronize changes to Origin
         uses: ad-m/github-push-action@v0.6.0
         with:
           force: true
+          branch: main
           directory: "."
           github_token: ${{ secrets.GITHUB_TOKEN }}

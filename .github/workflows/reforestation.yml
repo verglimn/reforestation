@@ -16,8 +16,8 @@ jobs:
     name: Pretending to be productive
     runs-on: ubuntu-latest
     steps:
-      - name: Gaslighting Git into thinking this directory is safe
-        run: git config --global --add safe.directory /github/workspace
+      # - name: Gaslighting Git into thinking this directory is safe
+      #   run: git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
@@ -64,6 +64,7 @@ jobs:
           git commit -m "$COMMIT_MSG"
           
       - name: Synchronize changes to Origin
+        if: steps.dice.outputs.skip != 'true'
         uses: ad-m/github-push-action@v0.8.0
         with:
           force: true

@@ -2,7 +2,6 @@ name: Daily GitHub Reforestation
 
 on:
   schedule:
-  - cron: "0/5 * * * *"
   - cron: "15 0 * * *"
   - cron: "42 3 * * *"
   - cron: "07 6 * * *"
@@ -19,7 +18,7 @@ jobs:
     steps:
       - name: Gaslighting Git into thinking this directory is safe
         run: git config --global --add safe.directory /github/workspace
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: true
           fetch-depth: 1
@@ -65,7 +64,7 @@ jobs:
           git commit -m "$COMMIT_MSG"
           
       - name: Synchronize changes to Origin
-        uses: ad-m/github-push-action@v0.6.0
+        uses: ad-m/github-push-action@v0.8.0
         with:
           force: true
           branch: main
